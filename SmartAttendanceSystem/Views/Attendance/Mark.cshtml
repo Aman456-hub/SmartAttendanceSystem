@@ -1,0 +1,52 @@
+﻿@model IEnumerable<SmartAttendanceSystem.Models.Student>
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+<h2>Mark Attendance</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Photo</th>
+            <th>Present</th>
+            <th>Absent</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var student in Model)
+        {
+            <tr>
+                <td>@student.Name</td>
+
+                <td>
+                    <img src="@student.ImagePath" width="60" height="60" style="border-radius:50%" />
+                </td>
+
+                <!-- ✅ PRESENT -->
+                <td>
+                    <form asp-controller="Attendance" asp-action="Mark" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="studentId" value="@student.Id" />
+                        <input type="hidden" name="isPresent" value="true" />
+                        <button type="submit" class="btn btn-success">Present</button>
+                    </form>
+                </td>
+
+                <!-- ❌ ABSENT -->
+                <td>
+                    <form asp-controller="Attendance" asp-action="Mark" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="studentId" value="@student.Id" />
+                        <input type="hidden" name="isPresent" value="false" />
+                        <button type="submit" class="btn btn-danger">Absent</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

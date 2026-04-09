@@ -1,0 +1,64 @@
+﻿@model SmartAttendanceSystem.Models.Student
+
+<h2>Create Student</h2>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+
+    <div class="form-group">
+        <label>Name</label>
+        <input asp-for="Name" class="form-control" required />
+    </div>
+
+    <div class="form-group">
+        <label>Email</label>
+        <input asp-for="Email" class="form-control" />
+    </div>
+
+    <!-- FILE UPLOAD -->
+    <div class="form-group">
+        <label>Upload Image</label>
+        <input type="file" name="ImageFile" class="form-control" />
+    </div>
+
+    <!-- WEBCAM -->
+    <h3>Capture Image</h3>
+    <video id="video" width="300" height="200" autoplay></video>
+    <br />
+    <button type="button" onclick="capture()">Capture</button>
+
+    <canvas id="canvas" width="300" height="200" style="display:none;"></canvas>
+
+    <!-- HIDDEN FIELD -->
+    <input type="hidden" id="CapturedImage" name="CapturedImage" />
+
+    <br />
+    <button type="submit" class="btn btn-primary">Create</button>
+</form>
+
+<a asp-controller="Students" asp-action="Index" class="btn btn-secondary">
+    Go to Students List
+</a>
+
+<script>
+    const video = document.getElementById('video');
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            video.srcObject = stream;
+        });
+
+    function capture() {
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        context.drawImage(video, 0, 0, 300, 200);
+
+        const dataUrl = canvas.toDataURL('image/png');
+
+        document.getElementById('CapturedImage').value = dataUrl;
+
+        console.log("Captured length:", dataUrl.length);
+
+        alert("Image Captured!");
+    }
+</script>

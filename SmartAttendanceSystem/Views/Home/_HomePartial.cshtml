@@ -1,0 +1,21 @@
+@* Partial to show quick actions on the home page *@
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Register Student</h5>
+                <p class="card-text">Add a new student using webcam or upload a photo.</p>
+                <a class="btn btn-primary" asp-controller="Students" asp-action="Create">Register</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Attendance</h5>
+                <p class="card-text">Open the attendance page to start face recognition and auto-mark attendance.</p>
+                <a class="btn btn-success" href="/Attendance">Open Attendance</a>
+            </div>
+        </div>
+    </div>
+</div>

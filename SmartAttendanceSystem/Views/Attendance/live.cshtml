@@ -1,0 +1,149 @@
+﻿<div class="container mt-5">
+    <h2 class="mb-4">🎥 Live Face Attendance</h2>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <video id="video" width="100%" height="400" autoplay class="rounded" style="background-color: #000;"></video>
+                    <br>
+                    <br>
+                    <button onclick="capture()" class="btn btn-success btn-lg w-100">
+                        📸 Capture & Mark Attendance
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5>✅ Marked Students</h5>
+                    <div id="response" class="alert alert-info" style="display:none;"></div>
+                    <ul id="markedList" class="list-group">
+                        <li class="list-group-item text-muted">No one marked yet</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<canvas id="canvas" width="400" height="300" style="display:none;"></canvas>
+
+<script>
+    const video = document.getElementById('video');
+    let markedStudents = [];
+
+    // 📹 REQUEST CAMERA ACCESS
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+        .then(stream => {
+            video.srcObject = stream;
+        })
+        .catch(err => {
+            alert('❌ Camera Access Denied! Please allow camera access.');
+            console.error(err);
+        });
+
+    // 📸 CAPTURE + SEND TO BACKEND
+    function capture() {
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        context.drawImage(video, 0, 0, 400, 300);
+        const image = canvas.toDataURL('image/png');
+
+        // Show loading
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Processing...';
+
+        fetch('/Attendance/AutoMark', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'CapturedImage=' + encodeURIComponent(image)
+        })
+        .then(res => res.text())
+        .then(data => {
+            console.log(data);
+            showResponse(data);
+
+            // Extract student name if attendance marked
+            if (data.includes('✅')) {
+                const name = data.match(/: (.*?)$/)?.[1] || 'Unknown';
+                if (!markedStudents.includes(name)) {
+                    markedStudents.push(name);
+                    updateMarkedList();
+                }
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '📸 Capture & Mark Attendance';
+        })
+        .catch(error => {
+            showResponse('❌ Error: ' + error.message);
+            btn.disabled = false;
+            btn.innerHTML = '📸 Capture & Mark Attendance';
+        });
+    }
+
+    // 📢 SHOW RESPONSE MESSAGE
+    function showResponse(message) {
+        const responseDiv = document.getElementById('response');
+        responseDiv.textContent = message;
+        responseDiv.style.display = 'block';
+
+        if (message.includes('✅')) {
+            responseDiv.className = 'alert alert-success';
+        } else if (message.includes('❌')) {
+            responseDiv.className = 'alert alert-danger';
+        } else {
+            responseDiv.className = 'alert alert-info';
+        }
+
+        setTimeout(() => {
+            responseDiv.style.display = 'none';
+        }, 3000);
+    }
+
+    // 📋 UPDATE MARKED LIST
+    function updateMarkedList() {
+        const list = document.getElementById('markedList');
+        list.innerHTML = '';
+
+        if (markedStudents.length === 0) {
+            list.innerHTML = '<li class="list-group-item text-muted">No one marked yet</li>';
+        } else {
+            markedStudents.forEach(name => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.innerHTML = `✅ ${name}`;
+                list.appendChild(li);
+            });
+        }
+    }
+</script>
+
+<style>
+    video {
+        border: 3px solid #007bff;
+    }
+
+    .card {
+        border-radius: 10px;
+        border: none;
+    }
+
+    .btn-lg {
+        padding: 15px;
+        font-size: 18px;
+        border-radius: 8px;
+    }
+
+    .list-group-item {
+        border-radius: 5px;
+        margin-bottom: 5px;
+    }
+</style>
